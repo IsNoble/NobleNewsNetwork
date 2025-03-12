@@ -1,0 +1,29 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Bot-specific files
+posted_articles.json
+warhammer_bot.log
+test_articles.json
+test_results.txt
+
+# Environment variables and secrets
+.env
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
