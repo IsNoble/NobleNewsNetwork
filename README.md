@@ -119,9 +119,14 @@ You can customize the bot by modifying the `CONFIG` dictionary:
 
 - `check_interval`: How often to check for new articles (in seconds)
 - `history_file`: Where to store the history of posted articles
-- `user_agent`: The User-Agent header to use when making requests
+- `user_agent`: The User-Agent header to use when making HTTP requests to the website. This identifies the bot as a specific browser (by default, Chrome on Windows 10). Some websites may block requests without a valid user agent or provide different content based on the user agent.
 - `current_date_only`: When set to `true`, the bot will only post articles from the current date or newer. This prevents flooding your Discord channel with older articles when the bot is first run.
+- `days_to_look_back`: Number of days to look back for articles (0 = today only, 1 = today and yesterday, etc.). Only used when `current_date_only` is `true`.
 - `extract_date_from_url`: When set to `true`, the bot will try to extract the publication date from the article URL if no date element is found on the page.
+- `strict_date_filtering`: When set to `true`, the bot will only post articles that it can definitively determine were published today. This ensures you only get today's articles, but might miss some if their publication date can't be determined.
+- `debug_html`: When set to `true`, the bot will save the HTML from the Warhammer Community website to a file named `warhammer_debug.html` in the bot's directory. This is useful for debugging issues with article detection or date extraction.
+- `never_assume_today`: When set to `true`, the bot will never assume an article is from today unless it can confirm it through URL or date elements. This is the strictest filtering option and will only post articles with confirmed dates.
+- `max_articles_per_run`: Limits the number of articles posted in a single run of the bot. This prevents flooding your Discord channel if many new articles are found at once.
 
 ## Troubleshooting
 
@@ -131,6 +136,20 @@ If the bot is not working correctly:
 2. Verify that your Discord webhook URL is correct
 3. Make sure you have installed all required dependencies
 4. Check your internet connection
+
+### Common Issues
+
+#### Unicode Encoding Errors
+
+If you see Unicode encoding errors in the console output (like `UnicodeEncodeError: 'charmap' codec can't encode character`), don't worry - the bot has been updated to handle these gracefully. The console will display non-ASCII characters as '?' but the Discord posts and log file will still contain the correct characters.
+
+#### Date Filtering
+
+The bot is configured to only post articles from the current date when `current_date_only` is set to `true`. If you're seeing older articles being posted:
+
+1. Make sure the website's date format is being correctly parsed
+2. Check that the article dates are being correctly extracted from the HTML
+3. The bot now includes additional date checking to ensure only current articles are posted
 
 ## License
 
