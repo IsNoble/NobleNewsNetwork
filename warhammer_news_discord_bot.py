@@ -48,7 +48,7 @@ logger = logging.getLogger("warhammer_bot")
 # Configuration
 CONFIG = {
     "warhammer_url": "https://www.warhammer-community.com/en-gb/",
-    "discord_webhook_url": "https://discord.com/api/webhooks/1349499463294517308/e067VzmBuxnPli4isJ5wqc0i3YepRRjX0OivdHbhjWsdXdqlYwB6EXKG5u9X_QwODevN",  # To be filled by the user
+    "discord_webhook_url": "",  # To be filled by the user
     "check_interval": 1800,  # Check every hour (in seconds)
     "history_file": "posted_articles.json",
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -526,7 +526,7 @@ class DiscordPoster:
                 elif date_source == 'assumed':
                     embed["description"] = f"Date assumed to be today: {pub_date}"
                 else:
-                    embed["description"] = f"Date source: {date_source}, Date: {pub_date}"
+                    embed["description"] = f"Date: {pub_date}"
             
             payload = {
                 "content": f"New Warhammer Community article: {article['title']}",
