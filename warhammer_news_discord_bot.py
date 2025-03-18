@@ -55,7 +55,7 @@ CONFIG = {
     "current_date_only": True,  # Only post articles from the current date or newer
     "days_to_look_back": 1,     # Number of days to look back for articles (0 = today only, 1 = today and yesterday, etc.)
     "strict_date_filtering": False,  # When True, only includes articles that are confirmed to be from today (based on URL or date element). When False, includes articles from within days_to_look_back range.
-    "debug_html": True,         # Save HTML for debugging
+    "debug_html": False,         # Save HTML for debugging
     "max_articles_per_run": 10, # Maximum number of articles to post in a single run
     "never_assume_today": True  # Never assume an article is from today unless confirmed
 }
@@ -529,7 +529,7 @@ class DiscordPoster:
                     embed["description"] = f"Date: {pub_date}"
             
             payload = {
-                "content": f"New Warhammer Community article: {article['title']}",
+                #"content": f"New Warhammer Community article: {article['title']}",
                 "embeds": [embed]
             }
             
