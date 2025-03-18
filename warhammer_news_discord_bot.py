@@ -53,7 +53,7 @@ CONFIG = {
     "history_file": "posted_articles.json",
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
     "current_date_only": True,  # Only post articles from the current date or newer
-    "days_to_look_back": 0,     # Number of days to look back for articles (0 = today only, 1 = today and yesterday, etc.)
+    "days_to_look_back": 1,     # Number of days to look back for articles (0 = today only, 1 = today and yesterday, etc.)
     "strict_date_filtering": False,  # When True, only includes articles that are confirmed to be from today (based on URL or date element). When False, includes articles from within days_to_look_back range.
     "debug_html": True,         # Save HTML for debugging
     "max_articles_per_run": 10, # Maximum number of articles to post in a single run
