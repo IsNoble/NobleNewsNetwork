@@ -321,8 +321,8 @@ class WarhammerNewsScraper:
             
             logger.info(f"Found {len(articles)} articles matching date criteria")
             
-            # Sort articles by date (newest first)
-            articles.sort(key=lambda x: x['pub_date'], reverse=True)
+            # Sort articles by date (oldest first)
+            articles.sort(key=lambda x: x['pub_date'])
             
             # Limit the number of articles to post in a single run
             max_articles = CONFIG.get("max_articles_per_run", 10)
