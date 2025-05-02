@@ -66,6 +66,8 @@ class WarhammerNewsScraper:
     def __init__(self, url: str, user_agent: str):
         self.url = url
         self.headers = {"User-Agent": user_agent}
+        self.session = requests.Session()
+        self.session.headers.update({"User-Agent": user_agent})
     
     def get_articles(self) -> List[Dict[str, Any]]:
         """
@@ -290,6 +292,10 @@ class WarhammerNewsScraper:
                         date_source = "assumed"
                         logger.debug(f"Using today's date for article with unknown date: {title}")
                 
+                # Fetch the first sentence of the article
+                first_sentence = self._get_first_sentence(url)
+                logger.debug(f"First sentence: {first_sentence}")
+                
                 # Create article object
                 article_obj = {
                     'title': title,
@@ -298,7 +304,8 @@ class WarhammerNewsScraper:
                     'pub_date': pub_date.isoformat(),
                     'timestamp': datetime.now().isoformat(),
                     'is_from_today': is_from_today,
-                    'date_source': date_source
+                    'date_source': date_source,
+                    'first_sentence': first_sentence
                 }
                 
                 # If current_date_only is enabled, only include articles from today or newer
@@ -477,6 +484,74 @@ class WarhammerNewsScraper:
         
         logger.debug(f"No date found in URL: {url}")
         return False
+        
+    def _get_first_sentence(self, url: str) -> str:
+        """
+        Fetches the first sentence of an article.
+        
+        Args:
+            url (str): The URL of the article
+            
+        Returns:
+            str: The first sentence of the article, or an empty string if not found
+        """
+        try:
+            logger.debug(f"Fetching article content from: {url}")
+            response = self.session.get(url, timeout=10)
+            response.raise_for_status()
+            
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # Try different selectors for the article content
+            content_selectors = [
+                'article .content', '.post-content', '.article-content', 
+                '.entry-content', 'article p', '.post p', '.article p',
+                'main p', '.main-content p'
+            ]
+            
+            # Find the first paragraph or content block
+            content_element = None
+            for selector in content_selectors:
+                elements = soup.select(selector)
+                if elements:
+                    # Filter out elements that are likely not the main content
+                    filtered_elements = [el for el in elements 
+                                        if not el.find_parent('header') 
+                                        and not el.find_parent('footer')
+                                        and len(el.get_text(strip=True)) > 20]
+                    if filtered_elements:
+                        content_element = filtered_elements[0]
+                        logger.debug(f"Found content with selector: {selector}")
+                        break
+            
+            if not content_element:
+                logger.debug("Could not find article content")
+                return ""
+            
+            # Get the text and extract the first sentence
+            text = content_element.get_text(strip=True)
+            
+            # Split by common sentence endings
+            sentences = re.split(r'(?<=[.!?])\s+', text)
+            
+            if sentences:
+                first_sentence = sentences[0].strip()
+                # Ensure the sentence ends with punctuation
+                if not first_sentence.endswith(('.', '!', '?')):
+                    first_sentence += '.'
+                
+                # Limit the length of the first sentence
+                if len(first_sentence) > 200:
+                    first_sentence = first_sentence[:197] + '...'
+                
+                logger.debug(f"Extracted first sentence: {first_sentence}")
+                return first_sentence
+            
+            return ""
+            
+        except Exception as e:
+            logger.error(f"Error fetching article content: {e}")
+            return ""
 
 class DiscordPoster:
     """Posts messages to Discord using webhooks."""
@@ -510,23 +585,33 @@ class DiscordPoster:
                 "timestamp": article['timestamp']
             }
             
-            # Add date source information if available
+            # Add first sentence if available
+            first_sentence = article.get('first_sentence', '')
+            
+            # Add date source information and first sentence
+            date_info = ""
             if 'date_source' in article:
                 date_source = article['date_source']
                 pub_date = article['pub_date']
                 
                 if date_source == 'url':
-                    embed["description"] = f"Date confirmed from URL: {pub_date}"
+                    date_info = f"Date confirmed from URL: {pub_date}"
                 elif date_source == 'element-attr':
-                    embed["description"] = f"Date confirmed from article datetime attribute: {pub_date}"
+                    date_info = f"Date confirmed from article datetime attribute: {pub_date}"
                 elif date_source == 'element-text':
-                    embed["description"] = f"Date confirmed from article date text: {pub_date}"
+                    date_info = f"Date confirmed from article date text: {pub_date}"
                 elif date_source == 'content':
-                    embed["description"] = f"Date extracted from article content: {pub_date}"
+                    date_info = f"Date extracted from article content: {pub_date}"
                 elif date_source == 'assumed':
-                    embed["description"] = f"Date assumed to be today: {pub_date}"
+                    date_info = f"Date assumed to be today: {pub_date}"
                 else:
-                    embed["description"] = f"Date: {pub_date}"
+                    date_info = f"Date: {pub_date}"
+            
+            # Combine first sentence and date info in the description
+            if first_sentence:
+                embed["description"] = f"{first_sentence}\n\n{date_info}"
+            else:
+                embed["description"] = date_info
             
             payload = {
                 #"content": f"New Warhammer Community article: {article['title']}",
